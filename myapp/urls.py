@@ -51,7 +51,8 @@ urlpatterns = [
     path('carrito/compra_fallida/', compra_fallida, name='compra_fallida'),
 
     path('save_total/', save_total, name='save_total'),
-
+    path('initiate_transaction/<int:total>/', views.initiate_transaction, name='initiate_transaction'),
+    path('webpay/return', views.transaccion_completa, name='transaccion_completa'),
     
 ]
 

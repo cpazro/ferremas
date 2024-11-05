@@ -7,11 +7,18 @@ from .models import Cliente, TipoTarjeta, Tarjeta, TodoItem, Producto, Categoria
 from .forms import RegistroUserForm, ClienteForm, TipoTarjetaForm, TarjetaForm
 from django.contrib.auth import get_user_model  # Importar get_user_model
 from django.db import IntegrityError
-import unicodedata, requests
+import unicodedata, requests, logging
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
+from transbank.webpay.webpay_plus.transaction import Transaction, WebpayOptions
+from transbank.common.integration_type import IntegrationType
 
+CommerceCode = '597055555532'
+ApiKeySecret = '579B523074A0808C097D9ED94D31A1615BACEB5561033264630D42D0A36B1C'
+options = WebpayOptions(CommerceCode, ApiKeySecret, IntegrationType.TEST)
+transaction = Transaction(options)
+total = 0
 
 # Página de inicio
 def home(request):
@@ -306,6 +313,31 @@ def save_total(request):
         return redirect('registro-user')
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+def initiate_transaction(request, total):
+    logging.debug(f"Using total: {total}")
+    try:
+        transaction = Transaction()
+        response = transaction.create(
+            buy_order="order12345",  # ID del pedido
+            session_id="session12345",  # ID de la sesión
+            amount=total,  # Monto a pagar que debe ser variable
+            return_url="https://s1gl4lnzel.execute-api.us-east-1.amazonaws.com/dev/webpay/return"  # URL de retorno
+        )
+        try:
+            return redirect(response['url'] + '?token_ws=' + response['token'])
+        except Exception as e:
+            logging.error(f"Error redirecting to URL: {e}")
+            return redirect("https://www.reddit.com")
+    except Exception as e:
+        logging.error(f"Error creating transaction: {e}")
+        return HttpResponse(f"Error creating transaction: {e}", status=500)
+
+def transaccion_completa(request):
+    if request.method == 'POST':
+        # Handle the POST request here
+        pass
+    return HttpResponse("Transaction complete")
 
 @login_required
 def eliminar_del_carrito(request, sku):
