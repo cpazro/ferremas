@@ -7,7 +7,10 @@ from .models import Cliente, TipoTarjeta, Tarjeta, TodoItem, Producto, Categoria
 from .forms import RegistroUserForm, ClienteForm, TipoTarjetaForm, TarjetaForm
 from django.contrib.auth import get_user_model  # Importar get_user_model
 from django.db import IntegrityError
-import unicodedata
+import unicodedata, requests
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.http import JsonResponse
 
 
 # Página de inicio
@@ -265,6 +268,14 @@ def agregar_al_carrito(request, sku):
 
 @login_required
 def carrito(request):
+    if request.method == 'POST':
+        total = request.POST.get('total')
+        # Save the total to a variable or perform any other action
+        request.session['total'] = total  # Example: Save to session
+
+        # Redirect to the registration page
+        return redirect('carrito')
+
     # Obtiene el carrito del usuario actual
     carrito = Carrito.objects.filter(usuario=request.user).first()
     
@@ -273,12 +284,28 @@ def carrito(request):
         productos = carrito.carritoproducto_set.all()
         # Calcula el total sumando los subtotales de cada producto
         total = sum(item.producto.precio * item.cantidad for item in productos)
+        print(total)
     else:
         productos = []
         total = 0
 
     # Pasa los productos y el total al template
     return render(request, "carrito.html", {"carrito": carrito, "productos": productos, "total": total})
+    
+
+@method_decorator(csrf_exempt, name='dispatch')
+@login_required
+def save_total(request):
+    if request.method == 'POST':
+        total = request.POST.get('total')
+        
+        # Save the total to a variable or perform any other action
+        request.session['total'] = total  # Example: Save to session
+
+        # Redirect to the registration page
+        return redirect('registro-user')
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 @login_required
 def eliminar_del_carrito(request, sku):
