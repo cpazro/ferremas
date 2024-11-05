@@ -120,11 +120,6 @@
                   <div class="container mt-5">
                     <!-- Your existing content -->
                     <div>Total: {{ total }}</div>
-                    <form method="post" action="{% url 'carrito' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="total" value="{{ total }}">
-                        <button type="submit" class="btn btn-primary btn-lg">Register</button>
-                    </form>
                 </div>
                 <form action="{% url 'initiate_transaction' total=total|floatformat:0 %}" method="get">
                   <button type="submit">Pay Now</button>
