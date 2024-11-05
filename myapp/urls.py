@@ -53,6 +53,9 @@ urlpatterns = [
     path('save_total/', save_total, name='save_total'),
     path('initiate_transaction/<int:total>/', views.initiate_transaction, name='initiate_transaction'),
     path('webpay/return', views.transaccion_completa, name='transaccion_completa'),
+    path('transaccion_completa/', views.transaccion_completa, name='transaccion_completa'), #a lo mejor borrar
+
+    
     
 ]
 

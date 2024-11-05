@@ -126,9 +126,9 @@
                         <button type="submit" class="btn btn-primary btn-lg">Register</button>
                     </form>
                 </div>
-                    <form action="{% url 'initiate_transaction' total=10000 %}" method="get">
-                      <button type="submit">Pay Now</button>
-                  </form>
+                <form action="{% url 'initiate_transaction' total=total|floatformat:0 %}" method="get">
+                  <button type="submit">Pay Now</button>
+              </form>
             </ul>
         {% else %}
             <p>Tu carrito está vacío.</p>

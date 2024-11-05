@@ -280,7 +280,7 @@ def carrito(request):
         # Save the total to a variable or perform any other action
         request.session['total'] = total  # Example: Save to session
 
-        # Redirect to the registration page
+        # Redirect to the carrito page
         return redirect('carrito')
 
     # Obtiene el carrito del usuario actual
@@ -306,15 +306,18 @@ def save_total(request):
     if request.method == 'POST':
         total = request.POST.get('total')
         
-        # Save the total to a variable or perform any other action
-        request.session['total'] = total  # Example: Save to session
+        # Save the total to the session
+        request.session['total'] = total
 
-        # Redirect to the registration page
-        return redirect('registro-user')
+        # Redirect to the initiate_transaction view
+        return redirect('initiate_transaction')
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 def initiate_transaction(request, total):
+    if not total:
+        return HttpResponse("Total not found in session", status=400)
+
     logging.debug(f"Using total: {total}")
     try:
         transaction = Transaction()
@@ -332,7 +335,7 @@ def initiate_transaction(request, total):
     except Exception as e:
         logging.error(f"Error creating transaction: {e}")
         return HttpResponse(f"Error creating transaction: {e}", status=500)
-
+    
 def transaccion_completa(request):
     if request.method == 'POST':
         # Handle the POST request here
