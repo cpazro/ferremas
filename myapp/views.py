@@ -300,23 +300,21 @@ def carrito(request):
     return render(request, "carrito.html", {"carrito": carrito, "productos": productos, "total": total})
     
 
-@method_decorator(csrf_exempt, name='dispatch')
-@login_required
-def save_total(request):
+@csrf_exempt
+def initiate_transaction(request, total=None):
     if request.method == 'POST':
         total = request.POST.get('total')
+        if not total:
+            return HttpResponse("Total not found in request", status=400)
         
         # Save the total to the session
         request.session['total'] = total
 
-        # Redirect to the initiate_transaction view
-        return redirect('initiate_transaction')
-
-    return JsonResponse({'error': 'Invalid request method'}, status=400)
-
-def initiate_transaction(request, total):
-    if not total:
-        return HttpResponse("Total not found in session", status=400)
+    else:
+        if total is None:
+            total = request.session.get('total')
+            if not total:
+                return HttpResponse("Total not found in session", status=400)
 
     logging.debug(f"Using total: {total}")
     try:

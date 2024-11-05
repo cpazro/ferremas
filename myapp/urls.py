@@ -8,7 +8,7 @@ from .views import despliegue_producto
 from .views import agregar_al_carrito
 from .views import eliminar_del_carrito
 from .views import compra_aprobada
-from .views import compra_fallida, save_total
+from .views import compra_fallida
 
 urlpatterns = [
     path("", views.inicio, name="home"),
@@ -50,7 +50,6 @@ urlpatterns = [
     path('carrito/compra_aprobada/', compra_aprobada, name='compra_aprobada'),
     path('carrito/compra_fallida/', compra_fallida, name='compra_fallida'),
 
-    path('save_total/', save_total, name='save_total'),
     path('initiate_transaction/<int:total>/', views.initiate_transaction, name='initiate_transaction'),
     path('webpay/return', views.transaccion_completa, name='transaccion_completa'),
     path('transaccion_completa/', views.transaccion_completa, name='transaccion_completa'), #a lo mejor borrar
