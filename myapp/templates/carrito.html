@@ -120,6 +120,7 @@
                   <div class="container mt-5">
                     <!-- Your existing content -->
                     <div>Total: {{ total }}</div>
+                    <div>Precio en Euros: {% if precio_en_euros %}{{ precio_en_euros|floatformat:2 }} EUR{% else %}No disponible{% endif %}</div>
                 </div>
                 <form action="{% url 'initiate_transaction' total=total|floatformat:0 %}" method="get">
                   <button type="submit">Pay Now</button>

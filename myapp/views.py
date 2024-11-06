@@ -7,18 +7,21 @@ from .models import Cliente, TipoTarjeta, Tarjeta, TodoItem, Producto, Categoria
 from .forms import RegistroUserForm, ClienteForm, TipoTarjetaForm, TarjetaForm
 from django.contrib.auth import get_user_model  # Importar get_user_model
 from django.db import IntegrityError
-import unicodedata, requests, logging
+import unicodedata, requests, logging, config
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
 from transbank.webpay.webpay_plus.transaction import Transaction, WebpayOptions
 from transbank.common.integration_type import IntegrationType
+from decimal import Decimal
 
 CommerceCode = '597055555532'
 ApiKeySecret = '579B523074A0808C097D9ED94D31A1615BACEB5561033264630D42D0A36B1C'
 options = WebpayOptions(CommerceCode, ApiKeySecret, IntegrationType.TEST)
 transaction = Transaction(options)
 total = 0
+BC_USER = "catalinapaz.rodriguezs@gmail.com"
+BC_PASS = "DZ*^rwin4q8yEu3Z4!bWgyJm"
 
 # Página de inicio
 def home(request):
@@ -296,9 +299,37 @@ def carrito(request):
         productos = []
         total = 0
 
-    # Pasa los productos y el total al template
-    return render(request, "carrito.html", {"carrito": carrito, "productos": productos, "total": total})
-    
+    # Código para convertir CLP a EUR
+    url = "https://si3.bcentral.cl/SieteRestWS/SieteRestWS.ashx"
+    params = {
+        "user": BC_USER,  
+        "pass": BC_PASS,    
+        "function": "GetSeries",
+        "timeseries": "F072.CLP.EUR.N.O.D",  # código de la serie, en este caso clp por eur
+        "firstdate": "2024-11-06", 
+        "lastdate": "2024-11-06"  
+    }
+
+    response = requests.get(url, params=params)
+
+    if response.status_code == 200: # 200 - HTTP OK
+        data = response.json()
+
+        descripcion = data['Series']['descripEsp']
+        fecha = data['Series']['Obs'][0]['indexDateString']
+        valor = Decimal(data['Series']['Obs'][0]['value'])
+
+        precio_producto = total
+        precio_en_euros = precio_producto / valor
+
+        print(f"El precio del producto en euros es: {precio_en_euros:.2f} EUR")
+    else:
+        print(f"Error {response.status_code}: {response.text}")
+        precio_en_euros = None
+
+    # Pasa los productos, el total y el precio en euros al template
+    return render(request, "carrito.html", {"carrito": carrito, "productos": productos, "total": total, "precio_en_euros": precio_en_euros})
+
 
 @csrf_exempt
 def initiate_transaction(request, total=None):
